@@ -9,6 +9,9 @@ library(DAAG)
 library(rpart)
 library(rpart.plot)
 library(rattle)
+library(tclust)
+library(cluster)
+library(fpc)
 
 setwd('~/workspace/fiap/wine')
 
@@ -254,6 +257,13 @@ round(t(sapply(modl, measures)), 3)
 wines_adjusted$good <- as.factor(ifelse(wines_adjusted$quality >= 6,1,0))
 summary(wines_adjusted$good)
 
+smp_size <- floor(0.8 * nrow(wines_adjusted))
+set.seed(2020)
+train_ind <- sample(seq_len(nrow(wines_adjusted)), size = smp_size)
+
+train <- wines_adjusted[train_ind, ]
+test <- wines_adjusted[-train_ind, ]
+
 rpart.model01 <- rpart (train$good ~ fixedacidity + volatileacidity
                         + citricacid + residualsugar_log + chlorides_log
                         + freesulfurdioxide + totalsulfurdioxide
@@ -291,5 +301,136 @@ fancyRpartPlot(rpart.model01)
 
 ## Regressão Logística
 
+log_01 <- glm(train$good ~ fixedacidity + volatileacidity
+                + citricacid + residualsugar_log + chlorides_log
+                + freesulfurdioxide + totalsulfurdioxide
+                + density + pH + sulphates + alcohol + type, train, family=binomial(link=logit))
+
+summary(log_01)
+
+log_02 <- glm(train$good ~ volatileacidity
+              + residualsugar_log
+              + freesulfurdioxide + totalsulfurdioxide
+              + sulphates + alcohol, train, family=binomial(link=logit))
+
+summary(log_02)
+
+predito <- fitted(modelo_log)
+
+summary(predito)
+hist(predito)
+
+# Criar variável faixa probabilidade
+fx_predito <- cut(predito, breaks=c(0,0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90,1), right=F)
+plot(fx_predito , train$good)
+
+Predito_teste <- predict(modelo_log, test)
+### Matriz de confusão  
+fx_predito1 <- cut(Predito_teste, breaks=c(0,0.50,1), right=F)
+
+MC <- table( test$good,  fx_predito1 , deparse.level = 2) # montar a matriz de confusão  
+show(MC) # mostra os resultados  
+ACC = sum(diag(MC))/sum(MC) # calcula a acurácia  
+show(ACC) # mostra a acurácia 
+
+# Criar variável faixa probabilidade
+fx_predito2 <- cut(Predito_teste, breaks=c(0,0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90,1), right=F)
+
+plot(fx_predito2 , test$good)
+
+# Cluster
+
+str(wines_adjusted)
+wines_padr <- wines_adjusted %>% 
+  select(-id_vinho, -quality) %>% 
+  mutate(good = as.numeric(levels(good))[good], type = as.numeric(type))  %>%
+  scale()
+
+summary(wines_padr)
+
+hier_cluster <- hclust(dist(wines_padr),method='ward.D2')
+d <- dist(wines_padr, method = "euclidean") # distance matrix
+plot(hier_cluster, ylab='distancia', cex=0.6)
+
+groups <- cutree(hier_cluster, k=5) # cut tree into 5 clusters
+# draw dendogram with red borders around the 5 clusters
+rect.hclust(hier_cluster, k=5, border="red") 
+
+groups <- cutree(hier_cluster, k=3) # cut tree into 5 clusters
+# draw dendogram with red borders around the 5 clusters
+rect.hclust(hier_cluster, k=3, border="blue") 
 
 
+# Determine number of clusters
+wss <- (nrow(wines_padr)-1)*sum(apply(wines_padr,2,var))
+for (i in 2:20) wss[i] <- sum(kmeans(wines_padr,
+                                     centers=i)$withinss)
+plot(1:20, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares") 
+
+
+clus_teste <- tkmeans(wines_padr, k = 4, alpha = 0.03)
+plot(clus_teste)
+
+set.seed(33)
+output_cluster<-kmeans(wines_padr,6)
+segmento<-output_cluster$cluster
+table (segmento)
+
+aggregate(wines_padr,by=list(segmento),FUN=mean)
+
+# Cluster Plot against 1st 2 principal components
+# vary parameters for most readable graph
+clusplot(wines_padr, output_cluster$cluster, color=TRUE, shade=TRUE,
+         labels=2, lines=0 , cex=0.75)
+
+
+# Centroid Plot against 1st 2 discriminant functions
+plotcluster(wines_padr, output_cluster$cluster) 
+
+### Componentes principais ###
+acpcor_wines <- prcomp(wines_padr, scale = TRUE) 
+summary(acpcor_wines)
+
+plot(1:ncol(wines_padr), acpcor_wines$sdev^2, type = "b", xlab = "Componente",
+     ylab = "Variância", pch = 20, cex.axis = 0.8, cex.lab = 0.8)
+
+sum(acpcor_wines$sdev^2)
+
+acpcor_wines <- prcomp(wines_padr, scale = TRUE, retx = TRUE)
+
+escore1 <- acpcor_wines$x[, 1]
+print(escore1)
+hist(escore1)
+
+escore2 <- acpcor_wines$x[, 2]
+
+escore3 <- acpcor_wines$x[, 3]
+
+par (mfrow=c(1,3))
+hist(escore1)
+hist(escore2)
+hist(escore3)
+par (mfrow=c(1,1))
+
+wines_pca <-cbind(escore1,escore2,escore3)
+
+# Determine number of clusters
+wss <- (nrow(wines_pca )-1)*sum(apply(wines_pca ,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(wines_pca ,iter.max=100,
+                                     centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares") 
+
+
+set.seed(333)
+output_cluster<-kmeans(wines_pca,5,iter=100)
+output_cluster
+
+centros <- output_cluster$centers
+centros
+
+clus_wines <- output_cluster$cluster
+table (clus_wines)
+
+plotcluster(wines_padr, output_cluster$cluster) 
