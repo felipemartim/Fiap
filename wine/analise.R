@@ -8,6 +8,7 @@ library(lmtest)
 library(DAAG)
 library(rpart)
 library(rpart.plot)
+library(rattle)
 
 setwd('~/workspace/fiap/wine')
 
@@ -122,181 +123,7 @@ plotWithTrendLine(wines_adjusted, 'density', 'chlorides')
 wines_adjusted <- wines_adjusted %>% mutate(chlorides_log = log(chlorides))
 wines_adjusted <- wines_adjusted %>% mutate(residualsugar_log = log(residualsugar))
 
-wines_adjusted %>% filter(type=="WHITE") -> whites
-wines_adjusted %>% filter(type=="RED") -> reds
-
-smp_size <- floor(0.8 * nrow(reds))
-set.seed(2020)
-train_ind <- sample(seq_len(nrow(reds)), size = smp_size)
-
-trainReds <- reds[train_ind, ]
-testReds <- reds[-train_ind, ]
-
-lm_reds_01 <- lm(quality ~ fixedacidity + volatileacidity
-               + citricacid + residualsugar_log + chlorides_log
-               + freesulfurdioxide + totalsulfurdioxide
-               + density + pH + sulphates + alcohol, data=trainReds)
-summary(lm_reds_01)
-
-
-lm_reds_02 <- lm(quality ~ volatileacidity
-               + chlorides_log
-               + totalsulfurdioxide
-               + pH + sulphates
-               + alcohol, data=trainReds)
-summary(lm_reds_02)
-
-qualityPredict <- predict(lm_reds_02, testReds, interval = "prediction", level = 0.95)
-
-mse <- mean((testReds$quality  - qualityPredict[,1])^2)
-sqrt(mse)
-
-erro_usando_media <- mean((testReds$quality  - mean(testReds$quality))^2)
-sqrt(erro_usando_media)
-
-actuals_preds <- data.frame(cbind(actuals=testReds$quality, predicteds=qualityPredict[,1]))
-correlation_accuracy <- cor(actuals_preds)
-correlation_accuracy
-
-min_max_accuracy <- mean(apply(actuals_preds, 1, min) / apply(actuals_preds, 1, max))
-min_max_accuracy
-mape <- mean(abs((actuals_preds$predicteds - actuals_preds$actuals))/actuals_preds$actuals)
-mape
-
-stepwise<-step(lm_reds_02,direction="both")
-
-stepwise
-summary(stepwise)
-
-# grafico residuo
-rs <- resid(lm_reds_02)
-plot(predict(lm_reds_02), rs, xlab = "Preditor linear", ylab = "Residuos")
-abline(h = 0, lty = 2)
-
-hist(rs)
-
-#observa-se SE violação da suposição de que os erros aleatórios têm distribuição Normal
-qqnorm(residuals(lm_reds_02), ylab="Resíduos",xlab="Quantis teóricos",main="")
-qqline(residuals(lm_reds_02))
-
-#Teste de shapiro
-shapiro.test(residuals(lm_reds_02))
-
-#k-fold cross validation
-cvResults <- suppressWarnings(CVlm(data=reds,
-    form.lm = quality ~ volatileacidity + chlorides_log
-    + totalsulfurdioxide
-    + pH + sulphates
-    + alcohol, m=5, dots=TRUE, seed=29, legend.pos="topleft",  printit=FALSE));
-attr(cvResults, 'ms')
-
-
-#whites
-
-smp_size <- floor(0.8 * nrow(whites))
-set.seed(2020)
-train_ind <- sample(seq_len(nrow(whites)), size = smp_size)
-
-trainWhites <- whites[train_ind, ]
-testWhites <- whites[-train_ind, ]
-
-lm_whites_01 <- lm(quality ~ fixedacidity + volatileacidity
-               + citricacid + residualsugar_log + chlorides_log
-               + freesulfurdioxide + totalsulfurdioxide
-               + density + pH + sulphates + alcohol, data=trainWhites)
-summary(lm_whites_01)
-
-lm_whites_02 <- lm(quality ~ volatileacidity
-               + chlorides_log
-               + freesulfurdioxide + residualsugar_log +
-               + pH + sulphates + density
-               + alcohol, data=trainWhites)
-summary(lm_whites_02)
-
-qualityPredict <- predict(lm_whites_02, testWhites, interval = "prediction", level = 0.95)
-
-mse <- mean((testWhites$quality  - qualityPredict[,1])^2)
-sqrt(mse)
-
-erro_usando_media <- mean((testWhites$quality  - mean(testWhites$quality))^2)
-sqrt(erro_usando_media)
-
-actuals_preds <- data.frame(cbind(actuals=testWhites$quality, predicteds=qualityPredict[,1]))
-correlation_accuracy <- cor(actuals_preds)
-correlation_accuracy
-
-min_max_accuracy <- mean(apply(actuals_preds, 1, min) / apply(actuals_preds, 1, max))
-min_max_accuracy
-mape <- mean(abs((actuals_preds$predicteds - actuals_preds$actuals))/actuals_preds$actuals)
-mape
-
-stepwise<-step(lm_whites_02,direction="both")
-
-stepwise
-summary(stepwise)
-
-# grafico residuo
-rs <- resid(lm_whites_02)
-plot(predict(lm_whites_02), rs, xlab = "Preditor linear", ylab = "Residuos")
-abline(h = 0, lty = 2)
-
-hist(rs)
-
-#observa-se SE violação da suposição de que os erros aleatórios têm distribuição Normal
-qqnorm(residuals(lm_whites_02), ylab="Resíduos",xlab="Quantis teóricos",main="")
-qqline(residuals(lm_whites_02))
-
-hist(residuals(lm_whites_02))
-
-#Teste de shapiro
-shapiro.test(residuals(lm_whites_02))
-
-#k-fold cross validation
-cvResults <- suppressWarnings(CVlm(data=whites,
-                                   form.lm = quality ~ volatileacidity
-                                   + chlorides_log
-                                   + freesulfurdioxide + residualsugar_log +
-                                   + pH + sulphates + density
-                                   + alcohol, m=5, dots=TRUE, seed=29, legend.pos="topleft",  printit=FALSE));
-attr(cvResults, 'ms')
-
-
-## Árvore de Regressão
-
-# Reds
-
-reds_tree <- rpart (quality ~ volatileacidity
-                              + chlorides_log
-                              + freesulfurdioxide + residualsugar_log +
-                                + pH + sulphates + density
-                              + alcohol, data=trainReds, 
-                              cp = 0.001, minsplit = 15, maxdepth=10)
-
-rpart.plot(reds_tree, type=4, extra=1, under=FALSE, clip.right.labs=TRUE,
-           fallen.leaves=FALSE,   digits=2, varlen=-10, faclen=20,
-           cex=0.4, tweak=1.7,
-           compress=TRUE,box.palette="Grays",
-           snip=FALSE)
-
-reds_val_pred_tree <- predict(reds_tree, testReds, interval = "prediction", level = 0.95) 
-str(reds_val_pred_tree)
-
-mse_tree <- mean((testReds$quality  - reds_val_pred_tree)^2)
-sqrt(mse_tree)
-
-rs <- reds_val_pred_tree - testReds$quality 
-plot(predict(reds_tree, testReds), rs, xlab = "Com Árvore de Regressão", ylab = "Residuos")
-abline(h = 0, lty = 2)
-hist(rs)
-
-rs <- reds_val_pred_tree - testReds$quality 
-#observa-se SE violação da suposição de que os erros aleatórios têm distribuição Normal
-qqnorm(rs, ylab="Resíduos",xlab="Quantis teóricos",main="")
-qqline(rs)
-
-hist(rs)
-
-#All
+# train e test sets
 
 smp_size <- floor(0.8 * nrow(wines_adjusted))
 set.seed(2020)
@@ -305,12 +132,71 @@ train_ind <- sample(seq_len(nrow(wines_adjusted)), size = smp_size)
 train <- wines_adjusted[train_ind, ]
 test <- wines_adjusted[-train_ind, ]
 
+lm_01 <- lm(quality ~ fixedacidity + volatileacidity
+               + citricacid + residualsugar_log + chlorides_log
+               + freesulfurdioxide + totalsulfurdioxide
+               + density + pH + sulphates + alcohol + type, data=train)
+summary(lm_01)
+
+
+lm_02 <- lm(quality ~ fixedacidity + volatileacidity
+            + residualsugar_log
+            + freesulfurdioxide + totalsulfurdioxide
+            + density + pH + sulphates + alcohol + type, data=train)
+summary(lm_02)
+
+qualityPredict <- predict(lm_02, test, interval = "prediction", level = 0.95)
+
+mse <- mean((test$quality  - qualityPredict[,1])^2)
+sqrt(mse)
+
+erro_usando_media <- mean((test$quality  - mean(test$quality))^2)
+sqrt(erro_usando_media)
+
+actuals_preds <- data.frame(cbind(actuals=test$quality, predicteds=qualityPredict[,1]))
+correlation_accuracy <- cor(actuals_preds)
+correlation_accuracy
+
+min_max_accuracy <- mean(apply(actuals_preds, 1, min) / apply(actuals_preds, 1, max))
+min_max_accuracy
+mape <- mean(abs((actuals_preds$predicteds - actuals_preds$actuals))/actuals_preds$actuals)
+mape
+
+stepwise<-step(lm_02,direction="both")
+
+stepwise
+summary(stepwise)
+
+# grafico residuo
+rs <- resid(lm_02)
+plot(predict(lm_02), rs, xlab = "Preditor linear", ylab = "Residuos")
+abline(h = 0, lty = 2)
+
+hist(rs)
+
+#observa-se SE violação da suposição de que os erros aleatórios têm distribuição Normal
+qqnorm(residuals(lm_02), ylab="Resíduos",xlab="Quantis teóricos",main="")
+qqline(residuals(lm_02))
+
+#Teste de shapiro
+shapiro.test(sample(residuals(lm_02), size = 5000)) 
+
+#k-fold cross validation
+cvResults <- suppressWarnings(CVlm(data=wines_adjusted,
+    form.lm = quality ~ volatileacidity + chlorides_log
+    + totalsulfurdioxide
+    + pH + sulphates
+    + alcohol, m=5, dots=TRUE, seed=29, legend.pos="topleft",  printit=FALSE));
+attr(cvResults, 'ms')
+
+## Árvore de Regressão
+
+
 tree <- rpart (quality ~ volatileacidity
-                    + chlorides_log
-                    + freesulfurdioxide + residualsugar_log +
-                    + pH + sulphates + density
-                    + alcohol, data=train, 
-                    cp = 0.001, minsplit = 15, maxdepth=10)
+               + residualsugar_log
+               + freesulfurdioxide
+               + density + sulphates + alcohol + type, data=train, 
+               cp = 0.001, minsplit = 15, maxdepth=10)
 
 rpart.plot(tree, type=4, extra=1, under=FALSE, clip.right.labs=TRUE,
            fallen.leaves=FALSE,   digits=2, varlen=-10, faclen=20,
@@ -322,6 +208,10 @@ val_pred_tree <- predict(tree, test, interval = "prediction", level = 0.95)
 
 mse_tree <- mean((test$quality  - val_pred_tree)^2)
 sqrt(mse_tree)
+
+actuals_preds <- data.frame(cbind(actuals=test$quality, predicteds=val_pred_tree))
+correlation_accuracy <- cor(actuals_preds)
+correlation_accuracy
 
 rs <- val_pred_tree - test$quality 
 plot(predict(tree, test), rs, xlab = "Com Árvore de Regressão", ylab = "Residuos")
@@ -335,3 +225,71 @@ qqnorm(rs, ylab="Resíduos",xlab="Quantis teóricos",main="")
 qqline(rs)
 
 hist(rs)
+
+library(lattice)
+library(latticeExtra)
+library(asbio)
+library(car)
+
+measures <- function(x) {
+  L <- list(npar = length(coef(x)),
+            dfres = df.residual(x),
+            nobs = length(fitted(x)),
+            RMSE = summary(x)$sigma,
+            R2 = summary(x)$r.squared,
+            R2adj = summary(x)$adj.r.squared,
+            PRESS = press(x),
+            logLik = logLik(x),
+            AIC = AIC(x),
+            BIC = BIC(x))
+  unlist(L)
+}
+
+modl <- list(m0 = lm_01, m1 = lm_02)
+round(t(sapply(modl, measures)), 3)
+
+
+## Árvore de Decisão
+
+wines_adjusted$good <- as.factor(ifelse(wines_adjusted$quality >= 6,1,0))
+summary(wines_adjusted$good)
+
+rpart.model01 <- rpart (train$good ~ fixedacidity + volatileacidity
+                        + citricacid + residualsugar_log + chlorides_log
+                        + freesulfurdioxide + totalsulfurdioxide
+                        + density + pH + sulphates + alcohol + type, 
+                       data = train)
+
+rpart.plot(rpart.model01, type=4, extra=104,
+           fallen.leaves=FALSE,
+           digits=2, varlen=-8, faclen=10,
+           tweak=1,
+           compress=TRUE)
+
+summary(rpart.model01)
+print(rpart.model01)
+
+previsto.com.modelo <- predict(rpart.model01, train, type='class')
+
+matriz.de.confusão <- table(train$good, previsto.com.modelo)
+matriz.de.confusão
+
+diagonal <- diag(matriz.de.confusão)
+Acc <-  sum(diagonal)/sum(matriz.de.confusão)
+Acc
+
+previsto.valid <- predict(rpart.model01, test, type='class')
+
+matriz.de.confusão<-table(test$good, previsto.valid)
+matriz.de.confusão
+
+diagonal <- diag(matriz.de.confusão)
+Acc <-  sum(diagonal)/sum(matriz.de.confusão)
+Acc
+
+fancyRpartPlot(rpart.model01)
+
+## Regressão Logística
+
+
+
