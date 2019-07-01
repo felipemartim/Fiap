@@ -13,19 +13,68 @@ library(tclust)
 library(cluster)
 library(fpc)
 
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
 setwd('~/workspace/fiap/wine')
 
 wines <- read.csv2(file="BaseWine_Red_e_White.csv"
-                  , header=TRUE
-                  , sep=";"
-                  , colClasses=c("integer", rep("numeric", 5), rep("numeric", 6), "integer", "factor"))
+                   , header=TRUE
+                   , sep=";")
+
 
 str(wines)
 summary(wines)
 
 sum(is.na(wines))
 
-wines %>% rename(type = Vinho)-> wines_adjusted
+wines %>% select(-id_vinho) %>% rename(type = Vinho) -> wines_adjusted
+
+count(wines_adjusted[duplicated(wines_adjusted, fromLast = TRUE), ], type)
+wines_adjusted <-wines_adjusted[!duplicated(wines_adjusted, fromLast = TRUE), ]
 
 par (mfrow=c(4,3))
 hist(wines_adjusted$chlorides)
@@ -50,7 +99,7 @@ wines_adjusted %>% ggplot(aes(x = residualsugar)) +
   scale_x_log10()
 
 wines_adjusted %>%
-  ggplot(aes(quality, fill = quality)) +
+  ggplot(aes(quality)) +
   geom_bar(fill = "purple")
 
 par (mfrow=c(1,1))
@@ -93,11 +142,13 @@ wines_adjusted %>%
   corrgram(type = "cor", lower.panel = panel.shade, upper.panel = panel.pie)
 
 wines_adjusted %>%
-  select(-tipo) %>%
+  select(-type) %>%
   ggcorr(method = c("pairwise","spearman"), label = FALSE, angle = -0, hjust = 0.2) +
   coord_flip()
 
-wines_adjusted %>% ggpairs()
+wines_adjusted %>%
+  select(-citricacid, -totalsulfurdioxide) %>%
+  ggpairs()
 
 plotWithTrendLine <- function (data, x, y) {
   reds <- data %>% filter(type == 'RED')
@@ -126,11 +177,61 @@ plotWithTrendLine(wines_adjusted, 'density', 'chlorides')
 wines_adjusted <- wines_adjusted %>% mutate(chlorides_log = log(chlorides))
 wines_adjusted <- wines_adjusted %>% mutate(residualsugar_log = log(residualsugar))
 
+plotWithTrendLine(wines_adjusted, 'chlorides', 'quality')
+
+
+p1 <- wines_adjusted %>%
+  ggplot(aes(freesulfurdioxide, totalsulfurdioxide, color = type)) +
+  facet_wrap(~type) +
+  geom_jitter() +
+  geom_smooth(method = "loess", color = "black", span = 1) +
+  theme(legend.position = "none")
+
+p2 <- wines_adjusted %>%
+  ggplot(aes(density, chlorides, color = type)) +
+  facet_wrap(~type) +
+  geom_jitter() +
+  geom_smooth(method = "loess", color = "black", span = 1) +
+  theme(legend.position = "none")
+
+p3 <- wines_adjusted %>%
+  ggplot(aes(volatileacidity, chlorides, color = type)) +
+  facet_wrap(~type) +
+  geom_jitter() +
+  geom_smooth(method = "loess", color = "black", span = 1) +
+  theme(legend.position = "none")
+
+p4 <- wines_adjusted %>%
+  ggplot(aes(density, residualsugar, color = type)) +
+  facet_wrap(~type) +
+  geom_jitter() +
+  geom_smooth(method = "loess", color = "black", span = 1) +
+  theme(legend.position = "none")
+
+p5 <- wines_adjusted %>%
+  ggplot(aes(density, fixedacidity, color = type)) +
+  facet_wrap(~type) +
+  geom_jitter() +
+  geom_smooth(method = "loess", color = "black", span = 1) +
+  theme(legend.position = "none")
+
+p6 <- wines_adjusted %>%
+  ggplot(aes(totalsulfurdioxide, residualsugar, color = type)) +
+  facet_wrap(~type) +
+  geom_jitter() +
+  geom_smooth(method = "loess", color = "black", span = 1) +
+  theme(legend.position = "none")
+
+layout <- matrix(c(1,2,3,4,5,6), 3, 2, byrow=T)
+multiplot(p1, p2, p3, p4, p5, p6, layout=layout )
+
+
 # train e test sets
 
-smp_size <- floor(0.8 * nrow(wines_adjusted))
-set.seed(2020)
-train_ind <- sample(seq_len(nrow(wines_adjusted)), size = smp_size)
+set.seed(32312)
+
+train_ind <- floor(0.8 * nrow(wines_adjusted)) %>%
+  sample(seq_len(nrow(wines_adjusted)), size = .)
 
 train <- wines_adjusted[train_ind, ]
 test <- wines_adjusted[-train_ind, ]
@@ -141,12 +242,27 @@ lm_01 <- lm(quality ~ fixedacidity + volatileacidity
                + density + pH + sulphates + alcohol + type, data=train)
 summary(lm_01)
 
-
 lm_02 <- lm(quality ~ fixedacidity + volatileacidity
-            + residualsugar_log
+            + residualsugar_log + chlorides_log
             + freesulfurdioxide + totalsulfurdioxide
             + density + pH + sulphates + alcohol + type, data=train)
 summary(lm_02)
+
+train %>%
+  filter(type == 'RED') %>%
+  lm(quality ~ volatileacidity
+           + chlorides
+           + freesulfurdioxide + totalsulfurdioxide
+            + pH + sulphates + alcohol, data=.) %>%
+  summary()
+
+train %>%
+  filter(type == 'WHITE') %>%
+  lm(quality ~ volatileacidity
+     + residualsugar
+     + freesulfurdioxide
+     + density + pH + sulphates + alcohol, data=.) %>%
+  summary()
 
 qualityPredict <- predict(lm_02, test, interval = "prediction", level = 0.95)
 
@@ -165,7 +281,7 @@ min_max_accuracy
 mape <- mean(abs((actuals_preds$predicteds - actuals_preds$actuals))/actuals_preds$actuals)
 mape
 
-stepwise<-step(lm_02,direction="both")
+stepwise <- step(lm_02, direction="both")
 
 stepwise
 summary(stepwise)
@@ -199,7 +315,7 @@ tree <- rpart (quality ~ volatileacidity
                + residualsugar_log
                + freesulfurdioxide
                + density + sulphates + alcohol + type, data=train, 
-               cp = 0.001, minsplit = 15, maxdepth=10)
+               cp = 0.001, minsplit = 15, maxdepth=15)
 
 rpart.plot(tree, type=4, extra=1, under=FALSE, clip.right.labs=TRUE,
            fallen.leaves=FALSE,   digits=2, varlen=-10, faclen=20,
@@ -315,7 +431,7 @@ log_02 <- glm(train$good ~ volatileacidity
 
 summary(log_02)
 
-predito <- fitted(modelo_log)
+predito <- fitted(log_02)
 
 summary(predito)
 hist(predito)
@@ -324,7 +440,7 @@ hist(predito)
 fx_predito <- cut(predito, breaks=c(0,0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90,1), right=F)
 plot(fx_predito , train$good)
 
-Predito_teste <- predict(modelo_log, test)
+Predito_teste <- predict(log_02, test)
 ### Matriz de confusão  
 fx_predito1 <- cut(Predito_teste, breaks=c(0,0.50,1), right=F)
 
@@ -342,10 +458,11 @@ plot(fx_predito2 , test$good)
 
 str(wines_adjusted)
 wines_padr <- wines_adjusted %>% 
-  select(-id_vinho, -quality) %>% 
-  mutate(good = as.numeric(levels(good))[good], type = as.numeric(type))  %>%
-  scale()
+  select(-quality, -good, -type,) %>% 
+  scale() %>%
+  as.data.frame()
 
+str(wines_adjusted)
 summary(wines_padr)
 
 hier_cluster <- hclust(dist(wines_padr),method='ward.D2')
@@ -373,7 +490,7 @@ clus_teste <- tkmeans(wines_padr, k = 4, alpha = 0.03)
 plot(clus_teste)
 
 set.seed(33)
-output_cluster<-kmeans(wines_padr,6)
+output_cluster<-kmeans(wines_padr,5)
 segmento<-output_cluster$cluster
 table (segmento)
 
