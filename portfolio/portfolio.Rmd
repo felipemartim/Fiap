@@ -1,0 +1,160 @@
+---
+title: "Portfólio do aluno - Programando IA  com R"
+output: 
+  html_notebook:
+    number_sections: true
+---
+
+Aluno: Felipe Martim Fernandes Vieira
+
+# Introdução
+
+Este portfólio demonstra o que aprendi e sou capaz de fazer utilizando a linguagem R como ferramenta estatística e de modelagem de inteligência artificial.
+
+# Instalar e carregar bibliotecas
+```{r}
+install.packages("dplyr")
+library(dplyr)
+
+install.packages("caret")
+library(caret)
+```
+
+
+# Criar vetores e matrizes e extrair subconjuntos deles
+
+```{r}
+vetor <- c(1,2,3,4,5,6,7, 8, 9)
+matriz <- matrix(vetor , nrow = 3)
+vetor
+vetor[1:3]
+vetor[vetor < 6]
+
+matriz
+matriz[1, 2]
+matriz[, 3]
+```
+
+# Manipular datas com a biblioteca Lubridate
+
+```{r}
+library(lubridate)
+data <- ymd("20190731")
+
+um.ano.depois <- data + years(1)
+um.ano.depois
+```
+# Gerar números aleatórios seguindo distribuições de probabilidade
+
+```{r}
+normal <- rnorm(100, mean = 5, sd = 2)
+normal
+
+binomial <- rbinom(100, 10, prob = 0.7)
+binomial
+```
+## Gerar histogramas e boxplots
+
+```{r}
+hist(normal)
+hist(binomial)
+
+boxplot(normal)
+boxplot(binomial)
+```
+
+# Manipular data frames
+
+```{r}
+data(mtcars)
+
+summary(mtcars)
+head(mtcars)
+
+ids <- seq_len(nrow(mtcars))
+set.seed(132)
+amostra <- sample(ids, 6)
+mtcars[amostra, ]
+```
+
+# Criar funções
+
+```{r message=FALSE, warning=FALSE}
+library(plotly)
+
+plotWithTrendLine <- function (data, x, y) {
+  fit <- data %>% lm(.[,y]~.[,x], data=.) 
+  p <- plot_ly(data = data, x = data[, x], y = data[, y], type="scatter", mode='markers', 
+               colors = c('#FF9999', 'lightblue'), opacity = 0.8) %>%
+    add_trace(x=data[, x], y=predict(fit), mode = 'lines', line = list(color = 'lightblue'),
+              showlegend = F, hoverinfo="none", inherit = FALSE) %>%
+    layout(title = paste(y, 'vs', x, sep = ' '),
+           xaxis = list(title = x, showline = T),
+           yaxis = list(side = 'left', title = y))
+  print(p)
+}
+
+plotWithTrendLine(mtcars, 'mpg', 'disp')
+```
+
+# Baixar conteúdo da internet
+
+```{r}
+file.url = 'https://poenaroda.com.br/wp-content/uploads/2019/02/destaque_alanturing.jpg'
+file.local = file.path('./', basename(file.url))
+download.file(url = file.url, destfile = file.local , mode='wb')
+```
+
+# Ler arquivos CSV
+
+```{r}
+setwd('~/workspace/fiap/wine')
+wines <- read.csv2(file="BaseWine_Red_e_White.csv"
+                   , header=TRUE
+                   , sep=";")
+```
+
+# Padronizar dados
+
+```{r}
+wines_padr <- preProcess(wines_adjusted[,1:11], c("center", "scale")) %>% 
+  predict(., wines_adjusted) %>% 
+  data.frame(trans = .)
+
+colnames(wines_padr) <- colnames(wines_adjusted)
+
+str(wines_padr)
+summary(wines_padr)
+```
+
+
+# Usar o dplyr
+
+```{r}
+wines_adjusted <- wines %>% select(-id_vinho) %>% rename(type = Vinho)
+head(wines_adjusted)
+```
+
+# Criar gráficos
+```{r}
+
+
+wines_adjusted %>%
+  ggplot(aes(x = density, y = fixedacidity, color = type)) +
+   geom_point(alpha = 0.2, size = 2) +
+   geom_smooth(method = 'lm')
+
+plot(airquality$Wind, airquality$Ozone)
+```
+
+# Clusterização com K-Means
+
+```{r}
+set.seed(1232)
+output_cluster <- kmeans(wines_padr, 6, iter=100)
+output_cluster
+```
+
+```{r, fig.height = 4}
+table(output_cluster$cluster)
+```
