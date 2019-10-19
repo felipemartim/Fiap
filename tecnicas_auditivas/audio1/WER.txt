@@ -1,0 +1,27 @@
+Audio 1 - WC: 37
+
+WER = 0,1351
+S 4
+I 1
+E
+
+Audio 2 - WC: 102
+FLAC - WER: 0,088
+S 7
+I 1
+E 1
+
+MP3 - WER: 0,088
+S 7
+E 2
+
+WAV - WER: 0,078
+S 7
+E 1
+
+Audio 3. WC: 82
+WER: 0,121
+S 5
+I 1
+E 4
+
