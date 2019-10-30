@@ -1,0 +1,20 @@
+Transcrição:
+
+Então, eu acho que pode ser que as pessoas tenham sim impressão de que a máquina ta tirando o trabalho dos humanos, (ã) porque é fato que alguns tipos de trabalho vão desaparecer principalmente esses que envolvem atendimento e serviço ao cliente. Mais eu acho que essa é uma visão muito limitada da realidade. Por que (ã) outros tipos de trabalho surgirão. Então (ã) vai haver uma demanda (ã) maior em alguns tipos de serviços que, que nós não temos hoje o que vai gerar (ã) uma necessidade de profissionais em outras áreas que nós não temos hoje.
+
+Flac:
+
+Então é a eu acho que pode ser que as pessoas tenham se emprego são de que a máquina a máquina tati irão do o trabalho dos humanos a porque é fato que alguns tipos de trabalho vão desaparecer principalmente esses que envolvem atendimento e serviço ao cliente. Ma é es eu acho que essa é uma visão muito limitada da realidade. Por que há outros tipos de trabalho surgiram. Então é vai haver uma demanda a a maior em alguns tipos de serviços que que nós não temos hoje o que vai gerar um há uma necessidade de profissionais em outras áreas que nós não temos hoje.
+WER -> 14/98 = 0,1428
+
+Mp3:
+
+Então é a eu acho que pode ser que as pessoas tenham sem pressão de que a máquina a máquina tati irão do o trabalho dos humanos a porque é fato que alguns tipos de trabalho vão desaparecer principalmente esses que envolvem atendimento e serviço ao cliente. Ma é es eu acho que essa é uma visão muito limitada da realidade. Por que há outros tipos de trabalho surgiram. Então é vai haver uma demanda a a maior em alguns tipos de serviços que que nós não temos hoje o que vai gerar um há uma necessidade de profissionais em outras áreas que nós não temos hoje.
+WER -> 13/98 = 0,1326
+
+Wav:
+
+Então é a eu acho que pode ser que as pessoas tenham se emprego são de que a máquina a máquina tati irão do o trabalho dos humanos a porque é fato que alguns tipos de trabalho vão desaparecer principalmente esses que envolvem atendimento e serviço ao cliente. Ma é es eu acho que essa é uma visão muito limitada da realidade. Por que há outros tipos de trabalho surgiram. Então é vai haver uma demanda a a maior em alguns tipos de serviços que que nós não temos hoje o que vai gerar um há uma necessidade de profissionais em outras áreas que nós não temos hoje.
+WER -> 10/98 = 0,1020
+
+Melhor WER: WAV

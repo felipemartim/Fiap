@@ -1,0 +1,10 @@
+Audio 1 - Original:
+Sim, com certeza, essa é uma realidade cada dia mais presente em todos os ramos de atividade, haja vista a indústria automobilística onde um setor de trabalho era necessário vinte pessoas hoje foi substituído por apenas quarto pessoas.
+Total Palavras: 38
+
+Transcrição: Áudio 1 – WAV
+Senhas com certeza esse uma realidade cada dia mais presente em todos os ramos de atividade a já vista à indústria automobilística onde um setor de trabalho era necessário vinte pessoas hoje ele foi substituído por apenas quatro pessoas.
+S: 3
+D: 1
+I: 1
+WER: 5/38 = 13,1% (Melhor)

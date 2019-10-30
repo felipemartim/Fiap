@@ -1,0 +1,130 @@
+---
+title: "Trabalho de técnicas auditivas"
+output:
+  html_document:
+    df_print: paged
+---
+
+### Carregando as bibliotecas necessárias
+```{r message=FALSE, warning=FALSE}
+library(tm)
+library(NLP)
+library(qdap) # Quantitative discourse analysis of transcripts.
+library(qdapDictionaries)
+library(dplyr) # Data wrangling, pipe operator %>%().
+library(RColorBrewer) # Generate palette of colours for plots.
+library(ggplot2) # Plot word frequencies.
+library(scales) # Include commas in numbers.
+library(stringi)
+library(wordcloud)
+library(topicmodels)
+```
+
+### Carregando o corpora.
+```{r}
+rm(list = ls())
+
+cps <- Corpus(DirSource("AIML6_AC",
+                        encoding = "UTF-8"),
+              readerControl = list(language = "pt"))
+cps
+```
+
+### Limpando o dataset
+```{r}
+cps <- tm_map(cps, stripWhitespace)
+cps <- tm_map(cps, content_transformer(tolower))
+cps <- tm_map(cps, removeWords, stopwords("portuguese"))
+cps <- tm_map(cps, removeNumbers)
+cps <- tm_map(cps, removePunctuation)
+```
+
+### Removendo acentuação
+```{r}
+removeDiacritics <- function(str) {
+  stri_trans_general(str, "Latin-ASCII")
+}
+
+cps <- tm_map(cps, removeDiacritics)
+```
+
+### Removendo palavras frequentes que não são importantes para a análise
+```{r}
+cps <- tm_map(cps, removeWords, c("vai", "entao", "ser", "vao", "acho", "porque", "vez", "cada", "sim", "ter", "wer", "tao", "tem", "cada", "irao", "e", "la", "ne"))
+```
+
+
+### Criando o DTM
+```{r}
+dtm <- DocumentTermMatrix(cps)
+dtm
+```
+
+### Termos mais frequentes
+```{r}
+freq <- sort(colSums(as.matrix(dtm)), decreasing = TRUE)
+head(freq, 50)
+```
+
+### Associações dos principais termos do corpora
+```{r}
+findAssocs(dtm, c("inteligencia", "trabalho", "substituir", "pessoas", "empregos"), c(0.65, 0.65, 0.6, 0.5, 0.55))
+```
+
+### Criando o TDM
+```{r}
+tdm <- TermDocumentMatrix(cps,
+                          control = list(wordLengths = c(1, Inf)))
+tdm
+```
+
+### Analisando palavras mais frequentes de forma gráfica
+```{r}
+term.freq <- rowSums(as.matrix(tdm))
+term.freq <- subset(term.freq, term.freq >= 30)
+df <- data.frame(term = names(term.freq), freq = term.freq)
+
+library(ggplot2)
+ggplot(df, aes(x = term, y = freq)) + geom_bar(stat = "identity") +
+  xlab("Terms") + ylab("Count") + coord_flip()
+```
+
+### Gerando nuvem de palavras
+```{r}
+m <- as.matrix(tdm)
+# calculate the frequency of words and sort it by frequency
+word.freq <- sort(rowSums(m), decreasing = T)
+
+pal <- brewer.pal(9, "BuGn")
+pal <- pal[-(1:4)]
+
+wordcloud(words = names(word.freq), freq = word.freq, min.freq = 10,
+          random.order = F, colors = pal, max.words =90, scale=c(3,.5))
+```
+
+
+### Agrupando os termos em um Dendograma
+```{r}
+tdm2 <- removeSparseTerms(tdm, sparse = 0.83)
+m2 <- as.matrix(tdm2)
+# cluster terms
+distMatrix <- dist(scale(m2))
+fit <- hclust(distMatrix, method = "ward.D2")
+
+plot(fit)
+rect.hclust(fit, k = 4)
+```
+
+### Separando os termos em tópicos
+```{r}
+dtm <- as.DocumentTermMatrix(tdm)
+lda <- LDA(dtm, k = 4) # find 4 topics
+(term <- terms(lda, 10)) # first 10 terms of every topic
+```
+
+
+
+
+
+
+

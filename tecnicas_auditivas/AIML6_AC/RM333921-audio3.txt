@@ -1,0 +1,7 @@
+RM333921-PTT-20191018-WA0011.opus.wav
+Eu acho que a inteligência artificial pode reduzir a quantidade de empregos mas tem algumas coisas que nunca vão consegui ser substituídas porque há o contador exige e coisas eletrônicas não tenha a empatia que algumas profissões necessitam.
+
+total de erros 3 total de palavras 37
+
+WER: 0.081
+

@@ -1,0 +1,24 @@
+Transcrição:
+
+Eu acredito que a IA vai mudar o mundo mais do que qualquer outra coisa na história da humanidade. Mais até do que eletricidade de certa forma há uma sabedoria humana que sempre supera as revoluções tecnológicas. A invenção do motor a vapor a máquina de costura e eletricidade também acabaram com empregos, nós superamos isso o desafio é que a IA deverá acabar com quarenta porcento dos empregos em quinze e vinte e cinco anos mais rápido que as revoluções anteriores.
+
+Flac:
+
+Acredito que é a vai mudar o mundo mais do que qualquer outra coisa na história da humanidade. Mais até do que eletricidade de certa forma uma sabedoria humana que sempre supera as evoluções tecnológicas a invenção do motor a vapor a máquina de costura eletricidade também acabaram com empregos nosso operamos isso o desafio é que a e a deverá acabar com quarenta porcento dos empregos em quinze e vinte e cinco anos mais rápido que as revoluções anteriores.
+E: 9
+WER -> 9/82 = 0,1097
+
+Mp3:
+
+Acredito que é a vai mudar o mundo mais do que qualquer outra coisa na história da humanidade. Mais até do que eletricidade de certa forma uma sabedoria humana que sempre supera as evoluções tecnológicas a invenção do motor a vapor a máquina de costura eletricidade também acabaram com empregos nosso operamos isso o desafio é que a e a deverá acabar com quarenta porcento dos empregos em quinze e vinte e cinco anos mais rápido que as revoluções anteriores.
+E: 9
+WER -> 9/82 = 0,1097
+
+Wav:
+
+Acredito que é a vai mudar o mundo mais do que qualquer outra coisa na história da humanidade. Mais até do que eletricidade de certa forma uma sabedoria humana que sempre supera as evoluções tecnológicas a invenção do motor a vapor a máquina de costura eletricidade também acabaram com empregos nosso operamos isso o desafio é que a e a deverá acabar com quarenta porcento dos empregos em quinze e vinte e cinco anos mais rápido que as revoluções anteriores.
+E: 9
+WER -> 9/82 = 0,1097
+
+
+Todos WER iguais!
