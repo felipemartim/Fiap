@@ -1,0 +1,5 @@
+
+Formato: MPEG Audio
+Taxa de bits: 32.0 kb/s
+Número de canais: 1
+Taxa de amostragem: 8.000Hz
