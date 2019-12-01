@@ -1,0 +1,212 @@
+---
+title: "Trabalho de técnicas auditivas"
+output:
+  html_document:
+    df_print: paged
+    number_sections: true
+---
+# Introdução
+
+O objetivo desse trabalho é realizar a transcrição de dois áudios diferentes utilizando-se do IBM Watson, calcular a métrica WER para essas transcrições, e efetuar análises com técnicas de NLP para verificar se é possível extrair as ideias centrais de cada áudio através da transcrição realizada.
+
+# Atividade 1
+
+A atividade 1 consiste em realizar a transcrição dos áudios e calcular a métrica **WER**.
+
+## Áudio um
+
+### Características
+
+* Formato
+* Taxa de bits
+* Número de canais
+* Taxa de amostragem
+
+### Transcrição realizada pelo Watson
+
+O idoso não ser do planeta consumidor normal com habilidades normais. Com atos normais que interagem para jogo cruciais usa tablets os ataques destes computadores e smartfones chris mac folhas e o piloto durões asseguro publicitário compete do alívio couto de da agência t pisei e t que aos oitenta e três anos de idade continua trabalhando intensamente viajando dando palestras e produzindo muito conteúdo o mundo mudou fábio e todos os países avançados já se deram conta que a nova realidade precisa ser aproveitado de pontos de vistas do consumo e do mac um bom exemplo disso é a campanha to dá vou da fone que há dois anos consumo duas viúvas da Romênia em celebridades por meio do projeto santo entrem. Na ocasião o mec clã de bucareste. Criou uma página no c c por que para as lavouras divulgaria seus dotes culinários de convidar o os estudantes da região para uma refeição em caseiros sua casa a iniciativa fez tanto sucesso que a operadora decidiu abrir a plataforma digital para outros idosos fazerem o mesmo resultado com trezentos e oitenta milhões de envios são de grandes contribuiu para triplicar a presença de idosos da mídia social impulsionou em vinte porcento as páginas oficiou quentes ou menos com mais esses tem cinco anos e alavancam as vendas de bens mais fones quatro g em quarenta porcento na região no decorrer de dois mil e dezesseis por aqui na mesma época a agência áfrica transformou duas simpáticas senhoras em voo vão obras do itaú juntas as amigas líbia josé de oitenta anos passaram a protagonizar diversas campanhas do banco com o objetivo de mostrar aos jovens como era simples utilizar aplicativos vital em março deste ano a dupla retornou as têm linhas para anunciar as vantagens oferecidas pelo aplicativo do pão de açúcar em campanha feita pela v t c ralas e para quem acha que os mais velhos não entendem de mídias abre o envelope nos mostra que quarenta e oito porcento das pessoas com idade cinquenta e cinco mas por vinte e dois porcento a população acesso a a internet ao menos uma vez na semana se olharmos só para a faixa entre cinquenta e cinco trinta e quatro anos setenta porcento são usuários da internet em entre sessenta e cinco setenta e cinco anos temos quarenta e cinco porcento observa hugo rodrigues charme iniciou da w vá quem citado em estudo citando um estudo mundial da mackenzie hoje a idade pode ter chegado mas ela não chegou como antiga antigamente chegou com muito mais informação tecnológico tecnologia possibilidade que faz desse público não são influenciador mas também um decisões de consumo experiências. É o que comprova uma salão este diretor de marketing da c v c entre os metais os idosos os idosos representam quinze porcento das vendas de pacotes na c v c hoje se público equivale a vinte porcento das vendas o e dos embarques quem já que somam quase um milhão de turistas por ano a perspectiva é de contínuo crescimento. Ainda assim são poucas as campanhas publicitárias e ações de marques destinadas a evitar. Que muitas vezes tem dinheiro e tempo para gastar. Com o tempo mas não encontra no mercado nacional produtos e serviços capazes de satisfazer seus exige o mercado de hoje ainda não sabe o que fazer para a camada da população mais velha afirma armando ferreira tine a presidente da editora referência de de publicação do jornal próprio max o mundo dos negócios não acordou para estágio pois acredito que as macas não querem se associar aos mais velhos na tentativa de quebrar estragou recentemente duas grandes montadoras da indústria automobilística colocaram os dois idosos como protagonista de suas ações em maio a missão a kombi dos idosos que não conseguiam mais renovar suas cartas de habilitação para uma experiência única abordo de um missão em g t a lembrando um luiz lara quitar vil lara p a t p w t a. A agência que desenvolveu a campanha despedida para a missão tudo que os idosos não querem ser tratados como réus até porque a do endividado e permite que o desenvolvimento de novos hábitos de consumo na chamada terceira idade afirma o publicitário já a fiat decidiu prestar uma homenagem a dona solange vale professora aposentada e corintiana roxa quem já teve o doze carros da fiat em a equipe de marketing da fiat surpreendeu a cliente fiel com uma ação no estádio do corinthians que teve até a participação do (ex)jogador tanto p quando se trata de martin idosos a regra geral é não fazer associações com verdes ou representações cômica sobre idade mostrar sua importância como qualquer outro consumidor é fundamental quem ensina joão batista social head da aprendi market comuniquei o f c alerta.
+
+### Cálculo do WER
+
+$WER = 100\% \times \frac{(S + D + I)}{|W|}$
+
+**Substituições (S)**: jogo cruciais, usa tablets, chris mac folhas, durões, do alívio, couto de, t pisei, mac, to dá , vou da fone, consumo, santo entrem, c c por que, lavouras divulgaria, de convidar, são de grandes, oficiou quentes, ou menos, esses tem, fones, líbia josé, vital, têm linhas, v, ralas, envelope, mas, acesso, charme iniciou da w vá, hoje a, uma salão este, se, marques, evitar, ferreira tine, max, estagio, macas, estragou, em maio a missão a kombi dos, missão, quitar vil, missão, réus, do endividado, solange, tanto p, martin, verdes, aprendi, alerta. **Total = 90**
+
+**Exclusões (D)**: é, um, outro, do, de, e, do, ou, cencenta, a, e, esse, esse, esse, é, ex, Ciaco, a. **Total = 18**
+
+**Inserções (I)**: destes, voo vão obras, quem, os, e,  quem, Com o tempo, que, em, um, a, a, e, o, em, quem, e. **Total = 21**
+
+
+**Número total de palavaras (W)** = 818
+
+$WER = 100\% \times \frac{(90 + 18 + 21)}{|818|}$ = $16\%$
+
+# Audio real
+### Características
+
+* Formato
+* Taxa de bits
+* Número de canais
+* Taxa de amostragem
+
+### Transcrição realizada pelo Watson
+
+Motivo do atraso geral de. Os cota sem o motivos atrasam todos. Ninguém disse é a gente pode negociar o pagamento dessa parcela que tem aberto eu consigo um desconto para dieta de dias sem. É tamém de saudade se não consegue efetuar antes do senhor não consegue. Seis de. Erra descansam a verificar o valor já tá sempre sem lançam uma mente. O valor atualizado com juros e multa até dia seis estaria novecentos e quarenta e um e setenta e três com juros e com desconto novecentos reais e sessenta centavos. Oito seis a secretaria que manipula boletos por email s m s. Hoje o seu prefere que uma de boleto por bem ou por s m s. De lá sai nesse mesmo. Pode nos trazer porque no meio de um ano. A eu tenho e veio da camila que. Que ao os. Se o pagamento direto na boca do caixa amenta. Bem no caixa. Thais mendes já garante a manequim diários. Chat na.
+
+### Cálculo do WER
+
+$WER = 100\% \times \frac{(S + D + I)}{|W|}$
+
+**Substituições (S)**: 53
+
+**Exclusões (D)**: 54
+
+**Inserções (I)**: 50
+
+
+**Número total de palavaras (W)** = 246
+
+$WER = 100\% \times \frac{(53 + 54 + 50)}{|246|}$ = $64\%$
+
+# Atividade 2
+
+## Carregando as bibliotecas necessárias
+```{r message=FALSE, warning=FALSE}
+library(tm)
+library(NLP)
+library(qdap) # Quantitative discourse analysis of transcripts.
+library(qdapDictionaries)
+library(dplyr) # Data wrangling, pipe operator %>%().
+library(RColorBrewer) # Generate palette of colours for plots.
+library(ggplot2) # Plot word frequencies.
+library(scales) # Include commas in numbers.
+library(stringi)
+library(wordcloud)
+library(topicmodels)
+```
+
+
+## Carregando os corpus
+```{r}
+rm(list = ls())
+
+audio_um <- readLines('transcricoes/audio_um.txt')
+audio_real <- readLines('transcricoes/audio_real.txt')
+
+cps_um <- VCorpus(VectorSource(audio_um), readerControl = list(language = "pt"))
+cps_real <- VCorpus(VectorSource(audio_real), readerControl = list(language = "pt"))
+```
+
+
+## Limpando os datasets
+```{r}
+cps_um <- tm_map(cps_um, stripWhitespace)
+cps_um <- tm_map(cps_um, content_transformer(tolower))
+cps_um <- tm_map(cps_um, removeWords, stopwords("portuguese"))
+cps_um <- tm_map(cps_um, removeNumbers)
+cps_um <- tm_map(cps_um, removePunctuation)
+
+cps_real <- tm_map(cps_real, stripWhitespace)
+cps_real <- tm_map(cps_real, content_transformer(tolower))
+cps_real <- tm_map(cps_real, removeWords, stopwords("portuguese"))
+cps_real <- tm_map(cps_real, removeNumbers)
+cps_real <- tm_map(cps_real, removePunctuation)
+```
+
+
+## Removendo palavras frequentes que não são importantes para a análise
+```{r}
+cps_um <- tm_map(cps_um, removeWords, c("vai", "entao", "ser", "vao", "acho", "porque", "vez", "cada", "sim", "ter", "wer", "tao", "tem", "cada", "irao", "e", "la", "ne", "s", "m", "é", "v", "t", "c", "p", "g", "w"))
+
+cps_real <- tm_map(cps_real, removeWords, c("vai", "entao", "ser", "vao", "acho", "porque", "vez", "cada", "sim", "ter", "wer", "tao", "tem", "cada", "irao", "e", "la", "ne", "s", "m", "é", "v", "t", "c"))
+```
+
+## Termos mais frequentes
+### Audio um
+```{r}
+dtm_um <- DocumentTermMatrix(cps_um)
+freq <- sort(colSums(as.matrix(dtm_um)), decreasing = TRUE)
+head(freq, 50)
+```
+
+### Audio real
+```{r}
+dtm_real <- DocumentTermMatrix(cps_real)
+freq <- sort(colSums(as.matrix(dtm_real)), decreasing = TRUE)
+head(freq, 50)
+```
+
+## Analisando palavras mais frequentes de forma gráfica
+
+### Audio um
+```{r}
+tdm_um <- TermDocumentMatrix(cps_um,
+                          control = list(wordLengths = c(1, Inf)))
+term.freq <- rowSums(as.matrix(tdm_um))
+term.freq <- subset(term.freq, term.freq >= 3)
+df <- data.frame(term = names(term.freq), freq = term.freq)
+
+ggplot(df, aes(x = term, y = freq)) + geom_bar(stat = "identity") +
+  xlab("Terms") + ylab("Count") + coord_flip()
+```
+
+### Audio real
+```{r}
+tdm_real <- TermDocumentMatrix(cps_real,
+                          control = list(wordLengths = c(1, Inf)))
+term.freq <- rowSums(as.matrix(tdm_real))
+term.freq <- subset(term.freq, term.freq >= 2)
+df <- data.frame(term = names(term.freq), freq = term.freq)
+
+ggplot(df, aes(x = term, y = freq)) + geom_bar(stat = "identity") +
+  xlab("Terms") + ylab("Count") + coord_flip()
+```
+
+
+## Gerando nuvem de palavras
+### Audio um
+```{r}
+m <- as.matrix(tdm_um)
+# calculate the frequency of words and sort it by frequency
+word.freq <- sort(rowSums(m), decreasing = T)
+
+pal <- brewer.pal(9, "BuGn")
+pal <- pal[-(1:4)]
+
+wordcloud(words = names(word.freq), freq = word.freq, min.freq = 10,
+          random.order = F, colors = pal, max.words =90, scale=c(3,.5))
+```
+
+### Audio real
+```{r}
+m <- as.matrix(tdm_real)
+# calculate the frequency of words and sort it by frequency
+word.freq <- sort(rowSums(m), decreasing = T)
+
+pal <- brewer.pal(9, "BuGn")
+pal <- pal[-(1:4)]
+
+wordcloud(words = names(word.freq), freq = word.freq, min.freq = 10,
+          random.order = F, colors = pal, max.words =90, scale=c(3,.5))
+```
+
+# Conclusão
+
+## Audio um
+
+A transcrição do áudio um, principalmente na primeira metade do texto, perde totalmente o sentido e ideia central, pois palavras chaves foram traduzidas por outras palavras totalmente fora do contexto. Palavras transcritas erradas como “Réus, durões e  libia” fazem o sentido mudar totalmente. Na segunda metade do texto transcrito ainda é possível em algumas partes entender a ideia central sobre idosos e campanhas publicitárias, mas erros de transcrição nas palavras “marketing” e “target” são graves.
+
+A ideia central do áudio um é mostrar como grandes empresas estão atingindo o mercado consumidor da terceira idade através de campanhas direcionadas a este público alvo. Ele trata também da inserção dos idosos no mundo da tecnologia e e das redes sociais, algo que não era visto anteriormente. 
+
+Através de nossa análise, é possível perceber que, apesar da transcrição ter perdido um pouco o sentido original do áudio, é possível extrair a ideia central. Palavras como "idosos", "mercado", "campanha" e "consumo", que se repetem diversas vezes no áudio, apareceram em nossa análise.
+
+## Audio real
+
+O audio real se trata de uma atendente questionando o não pagamento de um boleto e solicitando informações do cliente para o envio de um novo boleto para sanar os débitos existentes.
+
+A métrica WER desse áudio foi muito alta, indicando que 64% dela foi prejudicada por erros de transcrição. Entretanto, mesmo assim, após análise, foi possível extrair a ideia central com a repetição de palavras como "pagamento", "valor", "desconto", "caixa", "juros" e "boleto".
+
+
+
+
+
