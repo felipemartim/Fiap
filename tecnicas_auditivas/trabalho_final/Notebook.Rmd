@@ -17,10 +17,10 @@ A atividade 1 consiste em realizar a transcrição dos áudios e calcular a mét
 
 ### Características
 
-* Formato
-* Taxa de bits
-* Número de canais
-* Taxa de amostragem
+* Formato: MPEG Audio
+* Taxa de bits: 64.0 kb/s
+* Número de canais: 1
+* Taxa de amostragem: 44.1kHz
 
 ### Transcrição realizada pelo Watson
 
@@ -44,10 +44,10 @@ $WER = 100\% \times \frac{(90 + 18 + 21)}{|818|}$ = $16\%$
 # Audio real
 ### Características
 
-* Formato
-* Taxa de bits
-* Número de canais
-* Taxa de amostragem
+* Formato: MPEG Audio
+* Taxa de bits: 32.0 kb/s
+* Número de canais: 1
+* Taxa de amostragem: 8.000Hz
 
 ### Transcrição realizada pelo Watson
 
@@ -194,11 +194,11 @@ wordcloud(words = names(word.freq), freq = word.freq, min.freq = 10,
 
 ## Audio um
 
-A transcrição do áudio um, principalmente na primeira metade do texto, perde totalmente o sentido e ideia central, pois palavras chaves foram traduzidas por outras palavras totalmente fora do contexto. Palavras transcritas erradas como “Réus, durões e  libia” fazem o sentido mudar totalmente. Na segunda metade do texto transcrito ainda é possível em algumas partes entender a ideia central sobre idosos e campanhas publicitárias, mas erros de transcrição nas palavras “marketing” e “target” são graves.
-
 A ideia central do áudio um é mostrar como grandes empresas estão atingindo o mercado consumidor da terceira idade através de campanhas direcionadas a este público alvo. Ele trata também da inserção dos idosos no mundo da tecnologia e e das redes sociais, algo que não era visto anteriormente. 
 
-Através de nossa análise, é possível perceber que, apesar da transcrição ter perdido um pouco o sentido original do áudio, é possível extrair a ideia central. Palavras como "idosos", "mercado", "campanha" e "consumo", que se repetem diversas vezes no áudio, apareceram em nossa análise.
+A transcrição do áudio um, principalmente na primeira metade do texto, perde totalmente o sentido e ideia central, pois palavras chaves foram traduzidas por outras palavras totalmente fora do contexto. Palavras transcritas erradas como “Réus, durões e  libia” fazem o sentido mudar totalmente. Na segunda metade do texto transcrito ainda é possível em algumas partes entender a ideia central sobre idosos e campanhas publicitárias, mas erros de transcrição nas palavras “marketing” e “target” são graves.
+
+Através de nossa análise, é possível perceber que, apesar da transcrição ter perdido o sentido original do áudio, é possível extrair a ideia central. Palavras como "idosos", "mercado", "campanha" e "consumo", que se repetem diversas vezes no áudio, apareceram em nossa análise.
 
 ## Audio real
 
