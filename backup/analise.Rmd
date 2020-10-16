@@ -1,0 +1,691 @@
+---
+title: "Trabalho Final de Conceitos Estatísticos para IA"
+output: 
+  html_notebook:
+    number_sections: true
+---
+
+Aluno: Felipe Martim Fernandes Vieira
+
+# Introdução
+
+O objetivo desse trabalho é fazer a análise exploratória de uma base de dados de vinhos de uma região de Portugal, e construir modelos utilizando as técnicas aprendidas em sala de aula. As diferentes etapas do trabalho seguem abaixo:
+
+1. Estimar a variável "quality" em função das características físico-químicas dos vinhos através da construção dos modelos preditivos listados.
+    + Regressão Linear
+    + Árvore de Regressão
+    
+2. Categorização dos vinhos em "bons" ou "ruins", sendo que os vinhos com notas maiores ou iguais a 6 serão considerados de boa qualidade.
+    + Regressão Logística
+    + Árvore de Decisão
+    
+3. Definir grupos de vinhos utilizando métodos de _clusterização_
+    + Hierárquica
+    + K-Means
+    + Análise de Componentes Principais
+    
+
+# Preparações
+
+## Carregando as bibliotecas necessárias
+
+```{r}
+library(dplyr)
+library(corrgram)
+library('GGally')
+library(plotly)
+library(caret)
+library(e1071)
+library(lmtest)
+library(DAAG)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(tclust)
+library(cluster)
+library(fpc)
+library(ROCR)
+```
+
+
+## Funções auxiliares
+
+### Multiplot
+
+```{r}
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+```
+
+## Carregando os dados
+
+```{r}
+setwd('~/workspace/fiap/wine')
+
+wines <- read.csv2(file="BaseWine_Red_e_White.csv"
+                   , header=TRUE
+                   , sep=";")
+
+```
+
+# Visão geral dos dados
+
+```{r}
+str(wines)
+summary(wines)
+```
+
+Verificando se há valores faltantes
+
+```{r}
+sum(is.na(wines))
+```
+
+## Renomeando e removendo variáveis
+
+A variável _id_vinho_ não é necessária para a nossa análise e será removida. Para manter a consistência na nomenclatura, renomeei _Vinho_ para _type_.
+
+```{r}
+wines_adjusted <- wines %>% select(-id_vinho) %>% rename(type = Vinho)
+```
+
+# Visualizando as características individualmente
+
+
+```{r}
+p1 <- wines_adjusted %>% ggplot(aes(x = chlorides)) + 
+  geom_histogram(bins = 40, fill = 'lightblue')
+
+p2 <- wines_adjusted %>% ggplot(aes(x = sulphates)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p3 <- wines_adjusted %>% ggplot(aes(x = fixedacidity)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p4 <- wines_adjusted %>% ggplot(aes(x = freesulfurdioxide)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p5 <- wines_adjusted %>% ggplot(aes(x = alcohol)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p6 <- wines_adjusted %>% ggplot(aes(x = volatileacidity)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p7 <- wines_adjusted %>% ggplot(aes(x = totalsulfurdioxide)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p8 <- wines_adjusted %>% ggplot(aes(x = citricacid)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p9 <- wines_adjusted %>% ggplot(aes(x = density)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p10 <- wines_adjusted %>% ggplot(aes(x = pH)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p11 <- wines_adjusted %>% ggplot(aes(x = residualsugar)) + 
+  geom_histogram(bins = 40, fill = 'lightblue') 
+
+p12 <- wines_adjusted %>% ggplot(aes(x = quality)) + 
+  geom_histogram(bins = 6, fill = 'lightblue') 
+
+multiplot(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, cols = 3 )
+```
+
+# Verificando a presença de _outliers_
+
+Ao visualizar os boxplots abaixo, é possível verificar que existem inúmeros outliers, que provavelmente serão removidos para a modelagem.
+
+```{r}
+par (mfrow=c(2,2))
+boxplot(wines_adjusted$chlorides, main='chlorides')
+boxplot(wines_adjusted$sulphates, main='sulphates')
+boxplot(wines_adjusted$fixedacidity, main='fixedacidity')
+boxplot(wines_adjusted$residualsugar, main='residualsugar')
+boxplot(wines_adjusted$freesulfurdioxide, main='freesulfurdioxide')
+boxplot(wines_adjusted$alcohol, main='alcohol')
+boxplot(wines_adjusted$volatileacidity, main='volatileacidity')
+boxplot(wines_adjusted$totalsulfurdioxide, main='totalsulfurdioxide')
+boxplot(wines_adjusted$quality, main='quality')
+boxplot(wines_adjusted$citricacid, main='citricacid')
+boxplot(wines_adjusted$density, main='density')
+boxplot(wines_adjusted$pH, main='pH')
+par (mfrow=c(1,1))
+```
+
+## Padronizando as variáveis
+
+```{r}
+wines_padr <- preProcess(wines_adjusted[,1:11], c("center", "scale")) %>% 
+  predict(., wines_adjusted) %>% 
+  data.frame(trans = .)
+
+colnames(wines_padr) <- colnames(wines_adjusted)
+
+str(wines_padr)
+summary(wines_padr)
+```
+
+## Remoção dos _outliers_
+
+Para a remoção dos outliers, foi utilizado o método Z-Score. Os valores com mais de 3 desvios padrões foram removidos.
+
+```{r}
+wines_padr <- wines_padr[!abs(wines_padr$chlorides) > 3,] %>%
+              .[!abs(.$sulphates) > 3,] %>%
+              .[!abs(.$fixedacidity) > 3,] %>%
+              .[!abs(.$residualsugar) > 3,] %>%
+              .[!abs(.$freesulfurdioxide) > 3,] %>%
+              .[!abs(.$alcohol) > 3,] %>%
+              .[!abs(.$volatileacidity) > 3,] %>%
+              .[!abs(.$totalsulfurdioxide) > 3,] %>%
+              .[!abs(.$citricacid) > 3,] %>%
+              .[!abs(.$density) > 3,] %>%
+              .[!abs(.$pH) > 3,]
+
+str(wines_padr)
+summary(wines_padr)
+  
+```
+
+# Interação entre variáveis 
+
+## Correlações
+
+```{r}
+wines_padr %>%
+  select(-type) %>%
+  ggcorr(method = c("pairwise","spearman"), label = FALSE, angle = -0, hjust = 0.2) +
+  coord_flip()
+```
+
+```{r, fig.height=4}
+wines_adjusted %>%
+  select(-citricacid, -totalsulfurdioxide) %>%
+  ggpairs()
+```
+
+## Gráficos de dispersão
+
+```{r, fig.height=5}
+p1 <- wines_padr %>% 
+  ggplot(aes(x = density, y = alcohol, color = type)) +
+   geom_point(alpha = 0.2, size = 2) +
+   geom_smooth(method = 'lm')
+
+p2 <- wines_padr %>% 
+  ggplot(aes(x = density, y = fixedacidity, color = type)) +
+   geom_point(alpha = 0.2, size = 2) +
+   geom_smooth(method = 'lm')
+
+p3 <- wines_padr %>% 
+  ggplot(aes(x = volatileacidity, y = quality, color = type)) +
+   geom_point(alpha = 0.2, size = 2) +
+   geom_smooth(method = 'lm')
+
+p4 <- wines_padr %>% 
+  ggplot(aes(x = alcohol, y = quality, color = type)) +
+   geom_point(alpha = 0.2, size = 2) +
+   geom_smooth(method = 'lm')
+
+p5 <- wines_padr %>% 
+  ggplot(aes(x = residualsugar, y = alcohol, color = type)) +
+   geom_point(alpha = 0.2, size = 2) +
+   geom_smooth(method = 'lm')
+
+p6 <- wines_padr %>% 
+  ggplot(aes(x = density, y = chlorides, color = type)) +
+   geom_point(alpha = 0.2, size = 2) +
+   geom_smooth(method = 'lm')
+
+multiplot(p1, p2, p3, p4, p5, p6, cols = 2 )
+
+```
+
+# Separação dos dados de treino e teste
+
+Utilizarei 80% dos dados para treino, e 20% para teste.
+
+```{r}
+set.seed(32312)
+
+train_ind <- floor(0.8 * nrow(wines_padr)) %>%
+  sample(seq_len(nrow(wines_padr)), size = .)
+
+train <- wines_padr[train_ind, ]
+test <- wines_padr[-train_ind, ]
+```
+
+
+# Etapa 1 - Estimativa da variável **quality**
+
+## Regressão linear
+
+Testando a regressão linear com todas as variáveis.
+
+### Primeira tentativa de se gerar um modelo
+
+```{r}
+lm_01 <- lm(quality ~ fixedacidity + volatileacidity
+               + citricacid + residualsugar + chlorides
+               + freesulfurdioxide + totalsulfurdioxide
+               + density + pH + sulphates + alcohol + type, data=train)
+summary(lm_01)
+```
+
+Pelos resultados acima, é possível concluir que o modelo linear é estatisticamente significante, devido o p-value ser inferior a 0,05. Entretanto há variáveis que não são significantes, e podem ser removidas.
+
+
+### Segunda tentativa de se gerar um modelo
+
+Como vimos na seção anterior, vamos remover **citricacid**, **chlorides** e **totalsulfurdioxide** e criar um novo modelo. Como vimos durante a análise exploratória, há uma correlação muito forte entre **totalsulfurdioxide** e **freesulfurdioxide**. Por esse motivo, utilizaremos somente uma delas.
+
+```{r}
+lm_02 <- lm(quality ~ fixedacidity + volatileacidity
+               + residualsugar + freesulfurdioxide + density 
+               + pH + sulphates + alcohol + type, data=train)
+summary(lm_02)
+```
+
+Apesar de todas as variáveis independentes possuírem um baixo p-value, o nosso R-Squared se encontra um pouco baixo. Não descartarei necessariamente o modelo devido a um valor pequeno do R quadrado. Nesse caso é melhor verificar a acurácia da predição nos dados de teste.
+
+
+### Análise do modelo escolhido
+
+#### MSE
+
+```{r}
+qualityPredict <- predict(lm_02, test, interval = "prediction", level = 0.95)
+
+mse <- mean((test$quality  - qualityPredict[,1])^2)
+sqrt(mse)
+```
+
+
+#### Erro usando média
+
+```{r}
+erro_usando_media <- mean((test$quality  - mean(test$quality))^2)
+sqrt(erro_usando_media)
+```
+
+
+#### Correlação entre valores reais e preditos
+
+```{r}
+actuals_preds <- data.frame(cbind(actuals=test$quality, predicteds=qualityPredict[,1]))
+correlation_accuracy <- cor(actuals_preds)
+correlation_accuracy
+```
+
+
+#### Min Max Accuracy
+```{r}
+min_max_accuracy <- mean(apply(actuals_preds, 1, min) / apply(actuals_preds, 1, max))
+min_max_accuracy
+```
+
+#### MAPE
+```{r}
+mape <- mean(abs((actuals_preds$predicteds - actuals_preds$actuals))/actuals_preds$actuals)
+mape
+```
+
+#### Gráfico Resíduo
+
+É possível notar que os resíduos estão dispersos aleatoriamente em torno de zero, com variância constante.
+
+```{r}
+lm_02 %>%
+  resid() %>%
+  plot(predict(lm_02), ., xlab = "Preditor linear", ylab = "Residuos")
+abline(h = 0, lty = 2)
+
+lm_02 %>%
+  resid() %>%
+  hist(main='Histograma dos resíduos')
+```
+
+#### Distribuição normal dos erros
+
+```{r}
+qqnorm(residuals(lm_02), ylab="Resíduos",xlab="Quantis teóricos",main="")
+qqline(residuals(lm_02))
+```
+
+#### Teste de Shapiro
+
+```{r}
+shapiro.test(sample(residuals(lm_02), size = 4800)) 
+```
+
+#### K-fold cross validation
+
+```{r}
+suppressWarnings(CVlm(data=wines_padr,
+    form.lm = quality ~ fixedacidity + volatileacidity
+               + residualsugar + freesulfurdioxide + density 
+               + pH + sulphates + alcohol + type, m=5, dots=TRUE, seed=29, legend.pos="topleft",  printit=FALSE));
+```
+
+## Árvore de Regressão
+
+Para comparar com a regressão linear, foi feito o modelo de árvore de regressão.
+
+### Modelo
+
+```{r, fig.height=7, fig.width = 11}
+regression_tree <- rpart (quality ~ fixedacidity + volatileacidity
+               + citricacid + residualsugar + chlorides
+               + freesulfurdioxide + totalsulfurdioxide
+               + density + pH + sulphates + alcohol + type, data=train, 
+               cp = 0.001, minsplit = 15, maxdepth=15)
+
+rpart.plot(regression_tree, type=4, extra=1, under=FALSE, clip.right.labs=TRUE,
+           fallen.leaves=FALSE,   digits=2, varlen=-10, faclen=20,
+           cex=0.4, tweak=1.7,
+           compress=TRUE,box.palette="Grays",
+           snip=FALSE)
+```
+
+### MSE
+
+```{r}
+val_pred_regression_tree <- predict(regression_tree, test, interval = "prediction", level = 0.95) 
+
+mse_tree <- mean((test$quality  - val_pred_regression_tree)^2)
+sqrt(mse_tree)
+```
+
+### Correlação entre valores reais e preditos
+
+```{r}
+actuals_preds <- data.frame(cbind(actuals=test$quality, predicteds=val_pred_regression_tree))
+correlation_accuracy <- cor(actuals_preds)
+correlation_accuracy
+```
+### Gráfico Resíduo
+
+```{r}
+rs <- val_pred_regression_tree - test$quality 
+plot(predict(regression_tree, test), rs, xlab = "Com Árvore de Regressão", ylab = "Residuos")
+abline(h = 0, lty = 2)
+
+hist(rs)
+```
+
+### Distribuição dos erros aleatórios
+```{r}
+qqnorm(rs, ylab="Resíduos",xlab="Quantis teóricos",main="")
+qqline(rs)
+```
+
+## Conclusão
+
+Embora com resultados muito parecidos, a técnica de árvore de regressão teve uma acurácia um pouco maior. É possível que o decepcionante resultado das duas técnicas se deve ao tratamento dos vinhos tintos juntamente com os vinhos brancos. Como deu para perceber pela análise exploratória, os dois tipos de vinhos possuem algumas características físico-químicas com comportamentos diferentes.
+
+# Etapa 2 - Categorizando vinhos "bons" e "ruins"
+
+## Criação da variável resposta categórica
+
+```{r}
+wines_padr$good <- as.factor(ifelse(wines_padr$quality >= 6,1,0))
+summary(wines_padr$good)
+
+train <- wines_padr[train_ind, ]
+test <- wines_padr[-train_ind, ]
+```
+
+## Árvore de Decisão
+
+### Construção do modelo
+
+```{r}
+decision_tree <- rpart (train$good ~ fixedacidity + volatileacidity
+                       + citricacid + residualsugar + chlorides
+                       + freesulfurdioxide + totalsulfurdioxide
+                       + density + pH + sulphates + alcohol + type, 
+                       data = train)
+
+fancyRpartPlot(decision_tree)
+
+```
+
+### Avaliando o Modelo
+
+#### Matriz de Confusão
+
+
+
+```{r}
+decision_tree_predict <- predict(decision_tree, test, type='class')
+
+confusion_matrix <- table(test$good, decision_tree_predict)
+confusion_matrix
+```
+
+#### Acurácia
+
+```{r}
+diagonal <- diag(confusion_matrix)
+Acc <-  sum(diagonal)/sum(confusion_matrix)
+Acc
+```
+
+## Regressão Logística
+
+### Primeiro Modelo
+
+```{r}
+log_01 <- glm(train$good ~ fixedacidity + volatileacidity
+               + citricacid + residualsugar + chlorides
+               + freesulfurdioxide + totalsulfurdioxide
+               + density + pH + sulphates + alcohol + type, train, family=binomial(link=logit))
+
+summary(log_01)
+```
+
+## Segundo Modelo
+
+O segundo modelo foi feito removendo as variáveis que possuíam um p-value muito elevado no primeiro modelo.
+
+```{r}
+log_02 <- glm(train$good ~ fixedacidity + volatileacidity
+               + citricacid + residualsugar
+               + freesulfurdioxide + totalsulfurdioxide
+               + density + pH + sulphates + alcohol + type, train, family=binomial(link=logit))
+
+summary(log_02)
+```
+
+### Matriz de confusão
+
+```{r}
+logistic_regression_predict <- predict(log_02, test, type="response") %>%
+  cut(., breaks=c(0,0.50,1), right=F)
+
+MC <- table(test$good,  logistic_regression_predict , deparse.level = 2) # montar a matriz de confusão  
+show(MC)
+```
+### Acurácia
+
+```{r}
+ACC = sum(diag(MC))/sum(MC) 
+show(ACC)
+```
+
+### Gráfico ROC
+
+```{r}
+p <- predict(log_02, test, type="response")
+pr <- prediction(p, test$good)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+```
+
+## Conclusão
+
+As técnicas de árvore de decisão e regressão logística apresentaram resultados muito similares. Em contraste com a primeira etapa, os modelos para previsão de uma variável categórica de qualidade tiveram uma acurácia muito maior.
+
+# Etapa 3: Definir grupos de vinhos
+
+```{r}
+wines_padr <- wines_padr %>% 
+  select(-quality, -good, -type)
+```
+
+## Determinação de quantidade clusters
+
+```{r}
+wss <- (nrow(wines_padr)-1)*sum(apply(wines_padr,2,var))
+for (i in 2:20) wss[i] <- sum(kmeans(wines_padr,
+                                     centers=i)$withinss)
+plot(1:20, wss, type="b", xlab="Número de clusters",
+     ylab="Soma de quadrados intra-clusters") 
+```
+
+Analisando o gráfico acima, optei por dividir os vinhos em 6 grupos distintos.
+
+## Cluster Hierárquico
+
+Identificando os grupos no Dendograma.
+
+```{r}
+hier_cluster <- hclust(dist(wines_padr),method='ward.D2')
+d <- dist(wines_padr, method = "euclidean")
+plot(hier_cluster, ylab='distancia', cex=0.6)
+
+groups <- cutree(hier_cluster, k=6) #Identificando os 6 diferentes grupos
+rect.hclust(hier_cluster, k=6, border="red") 
+```
+
+
+
+## K-Means
+
+```{r}
+set.seed(1232)
+output_cluster <- kmeans(wines_padr, 6, iter=100)
+output_cluster
+```
+
+```{r}
+table(output_cluster$cluster)
+```
+
+Visualizando o resultado de uma forma gráfica
+
+```{r, fig.height = 4}
+plot(tkmeans(wines_padr , k = 6, alpha = 0.01))
+```
+
+## PCA
+
+Vamos tentar reduzir o número de variáveis e verificar o impacto que isso terá na clusterização.
+
+```{r}
+acpcor_wines <- prcomp(wines_padr, scale = TRUE, retx = TRUE) 
+summary(acpcor_wines)
+```
+
+```{r}
+plot(1:ncol(wines_padr), acpcor_wines$sdev^2, type = "b", xlab = "Componente",
+     ylab = "Variância", pch = 20, cex.axis = 0.8, cex.lab = 0.8)
+```
+
+Pelas informações acima, é possível verificar que ao optar pelos 6 primeiros componentes, obtém-se 85% da variância dos dados.
+
+```{r}
+escore1 <- acpcor_wines$x[, 1]
+escore2 <- acpcor_wines$x[, 2]
+escore3 <- acpcor_wines$x[, 3]
+escore4 <- acpcor_wines$x[, 4]
+escore5 <- acpcor_wines$x[, 5]
+escore6 <- acpcor_wines$x[, 6]
+
+wines_cpa <-cbind(escore1, escore2, escore3, escore4, escore5, escore6)
+
+wss <- (nrow(wines_cpa)-1)*sum(apply(wines_cpa,2,var))
+for (i in 2:20) wss[i] <- sum(kmeans(wines_cpa,
+                                     centers=i)$withinss)
+plot(1:20, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares") 
+```
+
+### K-Means com PCA
+```{r}
+set.seed(5425)
+output_cluster_pca <- kmeans(wines_cpa, 6,iter=100)
+output_cluster
+```
+```{r}
+table(output_cluster_pca$cluster)
+```
+
+```{r, fig.height = 4}
+plot(tkmeans(wines_cpa , k = 6, alpha = 0.01))
+```
+
+### Cruzando os clusters
+
+Agora vou cruzar os resultados obtidos a partir das variáveis com os resultados obitos pelos componentes principais.
+
+```{r}
+cruzamento <- data.frame(cbind(output_cluster$cluster, output_cluster_pca$cluster))
+colnames(cruzamento) <- c("sem_pca", "com_pca")
+cruzamento %>%
+  mutate(sem_pca = as.factor(sem_pca), com_pca = as.factor(com_pca)) %>%
+  ggplot(aes(sem_pca, com_pca)) +
+  geom_count(colour = "blue") +
+  theme(legend.position = "bottom")
+
+```
+
+O count plot acima indica que, apesar de haver mudança na forma como os vinhos foram classificados, em sua maioria os agrupamentos continuaram parecidos.
